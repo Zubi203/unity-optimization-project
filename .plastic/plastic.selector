@@ -1,0 +1,4 @@
+repository "Game Optimization tech demo/Game Optimization tech demo@18967112117759@cloud"
+  path "/"
+    br "/main"
+    co "/main"
