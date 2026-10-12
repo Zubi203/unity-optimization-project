@@ -19,7 +19,7 @@ public class AnimatedButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     }
 
     private Vector2 baseScale = new Vector2(1.0f, 1.0f);
-    private float baseRotationDegrees = 0.0f;
+    private Vector3 baseRotationDegrees;
     [SerializeField] private ScaleFrom pivotLocation = ScaleFrom.CenterMiddle;
     [SerializeField] private float hoverScaleIncrease = 0.15f;
     [SerializeField] private float pressedScaleIncrease = 0.2f;
@@ -36,7 +36,7 @@ public class AnimatedButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     void Awake()
     {
         baseScale = Vector2.one;
-        baseRotationDegrees = transform.rotation.z;
+        baseRotationDegrees = new Vector3(transform.rotation.x, transform.rotation.y, transform.rotation.z);
         
     }
 
@@ -76,8 +76,8 @@ public class AnimatedButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         if (rotateOnHover) {
             float[] randomRotation = {-hoverRotationAmount, hoverRotationAmount};
             float rot = randomRotation[Random.Range(0, randomRotation.Length)];
-            sequence.Join(targetTransform.DORotate(new Vector3(0.0f, 0.0f, 2.0f * scaleRatio * (baseRotationDegrees + rot)), animationSpeedScale * 0.1f).SetEase(Ease.OutBack));
-            sequence.Join(targetTransform.DORotate(new Vector3(0.0f, 0.0f, baseRotationDegrees), animationSpeedScale * 0.1f).SetEase(Ease.Linear).SetDelay(0.1f * animationSpeedScale));
+            sequence.Join(targetTransform.DORotate(new Vector3(0.0f, 0.0f, 2.0f * scaleRatio * (baseRotationDegrees.z + rot)), animationSpeedScale * 0.1f).SetEase(Ease.OutBack));
+            sequence.Join(targetTransform.DORotate(baseRotationDegrees, animationSpeedScale * 0.1f).SetEase(Ease.Linear).SetDelay(0.1f * animationSpeedScale));
         }
     }
 
@@ -92,7 +92,10 @@ public class AnimatedButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         sequence = DOTween.Sequence();
         sequence.Append(targetTransform.DOScaleX(baseScale.x, animationSpeedScale * 0.2f).SetEase(Ease.OutExpo));
         sequence.Join(targetTransform.DOScaleY(baseScale.y, animationSpeedScale * 0.2f).SetEase(Ease.OutExpo));
-        sequence.Join(targetTransform.DORotate(new Vector3(0.0f, 0.0f, baseRotationDegrees), animationSpeedScale * 0.1f).SetEase(Ease.OutExpo));
+        if (rotateOnHover)
+        {
+            sequence.Join(targetTransform.DORotate(baseRotationDegrees, animationSpeedScale * 0.1f).SetEase(Ease.OutExpo));
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -176,3 +179,4 @@ public class AnimatedButton : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     }
 }
+

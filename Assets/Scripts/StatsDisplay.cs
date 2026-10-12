@@ -8,6 +8,8 @@ public class StatsDisplay : MonoBehaviour
     [SerializeField] private TMP_Text displayLabel;
 
     private float deltaTime = 0.0f;
+    private float updateRate = 0.1f;
+    private float updateTimer = 0.0f;
 
     private int entityCount = 0;
     private string entityText;
@@ -28,6 +30,19 @@ public class StatsDisplay : MonoBehaviour
     private string drawCallText;
 
     private string displayText;
+
+    EntityTracker entityTracker
+    {
+        get
+        {
+            if (ServiceLocator.Instance.TryGetService(typeof(EntityTracker)))
+            {
+                return ServiceLocator.Instance.GetService(typeof(EntityTracker)).GetComponent<EntityTracker>();
+            }
+
+            return null;
+        }
+    }
 
     void Start()
     {
@@ -50,9 +65,16 @@ public class StatsDisplay : MonoBehaviour
 
     void UpdateDisplay()
     {
+        if (updateTimer > 0.0f)
+        {
+            updateTimer -= Time.deltaTime;
+            return;
+        }
+
+        updateTimer = updateRate;
         //if (displayText == null){return;}
 
-        entityText = string.Format("Active Entities: {0}", entityCount);
+        entityText = string.Format("Active Entities: {0}", entityTracker.GetEntityCount());
 
         millisecondsTimePerFrame = deltaTime * 1000.0f;
         framesPerSecond = 1.0f / deltaTime;

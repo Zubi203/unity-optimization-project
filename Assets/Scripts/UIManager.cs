@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class UIManager : MonoBehaviour
 {
@@ -25,5 +26,13 @@ public class UIManager : MonoBehaviour
         if (sceneLoader == null){return;}
 
         sceneLoader.TransitionToScene("TitleScreen");
+    }
+
+    void Update()
+    {
+        if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+        }
     }
 }
