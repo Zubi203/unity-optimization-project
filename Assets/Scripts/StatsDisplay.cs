@@ -85,7 +85,7 @@ public class StatsDisplay : MonoBehaviour
 
         drawCalls = drawCallsRecorder.CurrentValue;
         batches = batchesRecorder.CurrentValue;
-        drawCallText = string.Format("Draw Calls: {0} | Batches: {1}", drawCalls, batches);
+        //drawCallText = string.Format("Draw Calls: {0} | Batches: {1}", drawCalls, batches);
 
         displayText = string.Format("<b>Stats:</b>\n\n{0}\n\n{1}\n\n{2}\n\n{3}", entityText, fpsText, gcText, drawCallText);
         displayLabel.text = displayText;

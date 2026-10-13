@@ -3,19 +3,21 @@ using UnityEngine.AI;
 using System.Linq;
 using System.Collections.Generic;
 
+
+
 public class Enemy : Entity
 {
     [SerializeField] private Animator animator;
-    [SerializeField] private float moveSpeed = 3f;
+    public float moveSpeed = 3f;
     [SerializeField] private float stoppingDistance = 6f;
-    [SerializeField] private float pathPointReachedDistance = 0.5f;
+    public float pathPointReachedDistance = 0.5f;
 
     private int framesPerUpdate = 10;
     private int frameCounter = 0;
 
     public List<Vector3> path;
     private GameObject target;
-    private Rigidbody rb;
+    public Rigidbody rb;
     Vector2 moveDir = Vector2.zero;
     Vector2 lookDir;
     Vector3 targetEulerAngles;
@@ -64,11 +66,11 @@ public class Enemy : Entity
             frameCounter = framesPerUpdate;
         }
 
-        if(rb == null || target == null){return;}
-        if(Vector3.Distance(target.transform.position, transform.position) <= stoppingDistance){return;}
-
-        MoveToNextPathPoint();
-        MoveEnemy();
+        if (!toolkitManager.centralizedUpdateLogic)//
+        {
+            MoveToNextPathPoint();
+            MoveEnemy();
+        }
 
         if (animator != null)
         {
@@ -76,14 +78,19 @@ public class Enemy : Entity
         }
     }
 
-    void MoveEnemy()
+    public void MoveEnemy()
     {
+        if(rb == null || target == null){return;}
+        if(Vector3.Distance(target.transform.position, transform.position) <= stoppingDistance){return;}
+
         rb.linearVelocity = new Vector3(moveDir.x, rb.linearVelocity.y, moveDir.y) * moveSpeed;
         transform.eulerAngles = targetEulerAngles;
     }
 
-    void MoveToNextPathPoint()
+    public void MoveToNextPathPoint()
     {
+        if(target == null){return;}
+
         if (!toolkitManager.simplifiedPathing)
         {
             if (path.Count <= 0){return;}
@@ -129,3 +136,5 @@ public class Enemy : Entity
 
     
 }
+
+

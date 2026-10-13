@@ -7,6 +7,7 @@ public class ToolkitManager : MonoBehaviour
     public bool reducedUpdateRate = true;
     public bool simplifiedPathing = true;
     public bool burstCompiling = true;
+    public bool centralizedUpdateLogic = true;
     public bool GPUInstancing = true;
     public bool culling = true;
     public bool bakedLighting = true;
@@ -28,6 +29,11 @@ public class ToolkitManager : MonoBehaviour
     }
 
     public void CentralizedUpdateToggled(bool toggleOn)
+    {
+        centralizedUpdateLogic = toggleOn;
+    }
+
+    public void BurstCompilingToggled(bool toggleOn)
     {
         burstCompiling = toggleOn;
     }
