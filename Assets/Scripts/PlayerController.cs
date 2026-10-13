@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : Entity
 {
+    [SerializeField] private Animator animator;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float rotationSpeed = 5f;
@@ -19,21 +20,45 @@ public class PlayerController : Entity
     [SerializeField] private Transform playerModel;
     [SerializeField] private Transform muzzle;
 
-    
+    ToolkitManager toolkitManager
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(ToolkitManager)).GetComponent<ToolkitManager>();
+        }
+    }
+
+    PoolingManager poolingManager
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(PoolingManager)).GetComponent<PoolingManager>();
+        }
+    }
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         Vector2 movementVector = moveDir.normalized * moveSpeed;
         rb.linearVelocity = new Vector3(movementVector.x, rb.linearVelocity.y, movementVector.y);
-        TryShootPrimary();
-        TryShootSecondary();
         
         float angle = Mathf.Atan2(shootDir.x, shootDir.y) * Mathf.Rad2Deg;
         playerModel.transform.eulerAngles = Vector3.up * angle;
+
+        if (animator != null)
+        {
+            animator.SetBool("IsMoving", rb.linearVelocity.magnitude > 0.0);
+        }
+    }
+
+    void Update()
+    {
+        TryShootPrimary();
+        TryShootSecondary();
     }
 
     
@@ -84,7 +109,7 @@ public class PlayerController : Entity
         for (int i = 0; i < primaryBulletsPerShot; i++)
         {
             Vector3 randomDir = new Vector3(shootDir.x, 0f, shootDir.y);
-            Quaternion randomRotation = Quaternion.Euler(0f, Random.Range(-20f, 20f), 0f);
+            Quaternion randomRotation = Quaternion.Euler(0f, Random.Range(-30f, 30f), 0f);
             randomDir = randomRotation * randomDir;
             SpawnBullet(new Vector2(randomDir.x, randomDir.z));
         }
@@ -94,7 +119,27 @@ public class PlayerController : Entity
     void SpawnBullet(Vector2 dir)
     {
         if(muzzle == null){return;}
-        GameObject proj = Instantiate(projectilePrefab, muzzle.position, Quaternion.identity);
-        proj.GetComponent<Projectile>().Setup(dir, false);
+
+        if (toolkitManager.objectPooling)
+        {
+            GameObject proj = poolingManager.SpawnObject("playerProjectile", projectilePrefab);
+            proj.transform.position = muzzle.position;
+            proj.transform.rotation = Quaternion.identity;
+
+            if(proj.TryGetComponent<Projectile>(out Projectile projectileComponent))
+            {
+                projectileComponent.Setup(dir, true);
+            }
+        }
+        else
+        {
+            GameObject proj = Instantiate(projectilePrefab, muzzle.position, Quaternion.identity);
+            
+            if(proj.TryGetComponent<Projectile>(out Projectile projectileComponent))
+            {
+                projectileComponent.Setup(dir, false);
+            }
+        }
+        
     }
 }

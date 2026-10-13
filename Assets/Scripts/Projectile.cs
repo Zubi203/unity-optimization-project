@@ -10,9 +10,27 @@ public class Projectile : Entity
     private bool isPooled = false;
 
     private Rigidbody rb;
+    private TrailRenderer trail;
+
+    ToolkitManager toolkitManager
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(ToolkitManager)).GetComponent<ToolkitManager>();
+        }
+    }
+
+    PoolingManager poolingManager
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(PoolingManager)).GetComponent<PoolingManager>();
+        }
+    }
 
     void Awake()
     {
+        trail = GetComponent<TrailRenderer>();
         rb = GetComponent<Rigidbody>();
     }
 
@@ -35,9 +53,27 @@ public class Projectile : Entity
 
     void DestroyObject()
     {
+
         if (destroyEffect != null)
         {
-            GameObject effect = Instantiate(destroyEffect, transform.position, Quaternion.identity);
+            if (toolkitManager.objectPooling)
+            {
+                GameObject effect = poolingManager.SpawnObject("projectileEffect", destroyEffect);
+                effect.transform.position = transform.position;
+                effect.transform.rotation = Quaternion.identity;
+
+                ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+                var mainModule = particles.main;
+                mainModule.stopAction = ParticleSystemStopAction.Disable;
+            }
+            else
+            {
+                GameObject effect = Instantiate(destroyEffect, transform.position, Quaternion.identity);
+
+                ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+                var mainModule = particles.main;
+                mainModule.stopAction = ParticleSystemStopAction.Destroy;
+            }
         }
 
         if(isPooled)
@@ -58,5 +94,30 @@ public class Projectile : Entity
         }
     
         DestroyObject();
+    }
+
+    public override void OnEnableLogic()
+    {
+        StartCoroutine(EnableTrail());
+    }
+
+    IEnumerator EnableTrail()
+    {
+        yield return new WaitForSeconds(0.01f);
+
+        if (trail != null)
+        {
+            trail.Clear();
+            trail.emitting = true;
+        }
+    }
+
+    public override void OnDisableLogic()
+    {
+        if (trail != null)
+        {
+            trail.emitting = false;
+            trail.Clear();
+        }
     }
 }

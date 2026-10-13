@@ -3,7 +3,12 @@ guid: 69bbcd13925c457419c15849a4318223
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: mage
+    second: {fileID: 2100000, guid: b0f46c73778cef143ae84db39c12be74, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -59,7 +64,7 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
-    generateMeshLods: 0
+    generateMeshLods: 1
     meshLodGenerationFlags: 0
     maximumMeshLod: -1
     importUVs: -1

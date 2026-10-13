@@ -13,13 +13,13 @@ public class Entity : MonoBehaviour
 
     void OnEnable()
     {
-        entityTracker.IncrementEntities();
+        entityTracker?.IncrementEntities();
         OnEnableLogic();
     }
 
     void OnDisable()
     {
-        entityTracker.DecrementEntities();
+        entityTracker?.DecrementEntities();
         OnDisableLogic();
     }
 
@@ -32,4 +32,5 @@ public class Entity : MonoBehaviour
     {
         
     }
+    
 }

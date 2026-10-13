@@ -1,18 +1,47 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
 
 public class EnemyManager : MonoBehaviour
 {
     [SerializeField] private GameObject enemyPrefab;
+    [SerializeField] private GameObject spawnEffect;
     [SerializeField] private float spawnInterval = 0.5f;
     private float spawnIntervalTimer = 0.0f;
     [SerializeField] private int enemiesPerSpawnCall = 10;
     [SerializeField] private float minSpawnDistanceFromPlayer = 20f;
     [SerializeField] private float maxSpawnDistanceFromPlayer = 60f;
 
+    private int entityLimit = 2000;
+    private List<Enemy> enemyList = new List<Enemy>();
+
 
     private GameObject player = null;
+
+    ToolkitManager toolkitManager
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(ToolkitManager)).GetComponent<ToolkitManager>();
+        }
+    }
+
+    PoolingManager poolingManager
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(PoolingManager)).GetComponent<PoolingManager>();
+        }
+    }
+
+    EntityTracker entityTracker
+    {
+        get
+        {
+            return ServiceLocator.Instance.GetService(typeof(EntityTracker)).GetComponent<EntityTracker>();
+        }
+    }
 
     void Awake()
     {
@@ -33,7 +62,7 @@ public class EnemyManager : MonoBehaviour
         player = FindAnyObjectByType<PlayerController>().gameObject;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         TrySpawnEnemies();
     }
@@ -54,9 +83,67 @@ public class EnemyManager : MonoBehaviour
         }
         spawnIntervalTimer = spawnInterval;
 
+        if (entityTracker.GetEntityCount() >= entityLimit)
+        {
+            return;
+        }
+
+        
         for(int i = 0; i < enemiesPerSpawnCall; i++)
         {
-            GameObject enemy = Instantiate(enemyPrefab, GetRandomSpawnPoint(player.transform.position, maxSpawnDistanceFromPlayer, minSpawnDistanceFromPlayer), Quaternion.identity);
+            Vector3 spawnPos = GetRandomSpawnPoint(player.transform.position, maxSpawnDistanceFromPlayer, minSpawnDistanceFromPlayer);
+            if (toolkitManager.objectPooling)
+            {
+                GameObject enemy = poolingManager.SpawnObject("enemy", enemyPrefab);
+                enemy.transform.position = spawnPos;
+                enemy.transform.rotation = Quaternion.identity;
+                enemyList.Add(enemy.GetComponent<Enemy>());
+                if (enemy.TryGetComponent<Health>(out Health health))
+                {
+                    health.healthDepleted += RemoveEnemyFromList;
+                }
+
+                if (enemy.TryGetComponent<Health>(out Health healthComponent))
+                {
+                    healthComponent.isPooled = true;
+                }
+            }
+            else
+            {
+                GameObject enemy = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+                enemyList.Add(enemy.GetComponent<Enemy>());
+                
+                if (enemy.TryGetComponent<Health>(out Health healthComponent))
+                {
+                    healthComponent.isPooled = false;
+                }
+            }
+            
+
+            SpawnEffect(spawnPos);
+        }
+    }
+
+    private void SpawnEffect(Vector3 spawnPos)
+    {
+        if (spawnEffect == null){return;}
+
+        if (toolkitManager.objectPooling)
+        {
+            GameObject effect = poolingManager.SpawnObject("enemySpawn", spawnEffect);
+            effect.transform.position = spawnPos;
+            effect.transform.rotation = Quaternion.identity;
+
+            ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+            var mainModule = particles.main;
+            mainModule.stopAction = ParticleSystemStopAction.Disable;
+        }
+        else
+        {
+            GameObject effect = Instantiate(spawnEffect, spawnPos, Quaternion.identity);
+            ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+            var mainModule = particles.main;
+            mainModule.stopAction = ParticleSystemStopAction.Destroy;
         }
     }
 
@@ -76,5 +163,14 @@ public class EnemyManager : MonoBehaviour
         }
 
         return originPos;
+    }
+
+    public void RemoveEnemyFromList(Enemy enemy)
+    {
+        if (enemy.TryGetComponent<Health>(out Health health))
+        {
+            health.healthDepleted -= RemoveEnemyFromList;
+        }
+        enemyList.Remove(enemy);
     }
 }

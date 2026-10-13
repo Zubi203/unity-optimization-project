@@ -7,7 +7,6 @@ public class StatsDisplay : MonoBehaviour
 {
     [SerializeField] private TMP_Text displayLabel;
 
-    private float deltaTime = 0.0f;
     private float updateRate = 0.1f;
     private float updateTimer = 0.0f;
 
@@ -46,7 +45,6 @@ public class StatsDisplay : MonoBehaviour
 
     void Start()
     {
-        Application.targetFrameRate = -1;
         drawCallsRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Draw Calls Count");
         batchesRecorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, "Batches Count");
     }
@@ -59,7 +57,6 @@ public class StatsDisplay : MonoBehaviour
 
     void Update()
     {
-        deltaTime = (Time.unscaledDeltaTime - deltaTime) * 0.1f;
         UpdateDisplay();
     }
 
@@ -76,8 +73,8 @@ public class StatsDisplay : MonoBehaviour
 
         entityText = string.Format("Active Entities: {0}", entityTracker.GetEntityCount());
 
-        millisecondsTimePerFrame = deltaTime * 1000.0f;
-        framesPerSecond = 1.0f / deltaTime;
+        millisecondsTimePerFrame = Time.unscaledDeltaTime * 1000.0f;
+        framesPerSecond = 1f / Time.unscaledDeltaTime;
         fpsText = string.Format("FPS: {0:0} ({1:0.0} ms)", framesPerSecond, millisecondsTimePerFrame);
 
 
